@@ -26,6 +26,9 @@ HTML_CONTENT = """
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        .neon-glow {
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), 0 0 50px rgba(168, 85, 247, 0.2);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-between p-6 relative overflow-x-hidden">
@@ -42,7 +45,7 @@ HTML_CONTENT = """
             <button onclick="toggleLanguage()" id="langBtn" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-bold hover:border-pink-500 transition-all">
                 English 🌐
             </button>
-            <span class="text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hidden md:inline-block" data-i18n="badge">النسخة الاحترافية</span>
+            <span class="text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hidden md:inline-block" data-i18n="badge">النسخة الفاخرة</span>
         </div>
     </header>
 
@@ -52,9 +55,9 @@ HTML_CONTENT = """
             
             <div class="mb-8">
                 <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-3">
-                    <span data-i18n="titlePre">حوّلي صورتك إلى</span> <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent" data-i18n="titleHighlight">أنمي فني</span>
+                    <span data-i18n="titlePre">حوّلي صورتك إلى</span> <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent" data-i18n="titleHighlight">أنمي فخم</span>
                 </h1>
-                <p class="text-slate-400 text-sm md:text-base" data-i18n="subtitle">تقنية معالجة متطورة تحافظ على تعابير وجهك وملامحك الحقيقية بدقة عالية</p>
+                <p class="text-slate-400 text-sm md:text-base" data-i18n="subtitle">معالجة فنية متطورة ترسم الملامح بدقة مذهلة وجمالية عالية</p>
             </div>
 
             <!-- منطقة رفع الصورة -->
@@ -82,7 +85,7 @@ HTML_CONTENT = """
                     <img id="sourceImage" class="max-h-52 rounded-xl object-contain">
                 </div>
                 <button onclick="uploadAndConvert()" class="mt-5 w-full bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:opacity-95 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center space-x-2 space-x-reverse text-base">
-                    <span data-i18n="convertBtn">بدء التحويل إلى أنمي الآن</span>
+                    <span data-i18n="convertBtn">ابدئي التحويل الفني الآن</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </button>
             </div>
@@ -93,8 +96,8 @@ HTML_CONTENT = """
                     <div class="absolute inset-0 rounded-full border-4 border-pink-500/20"></div>
                     <div class="absolute inset-0 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"></div>
                 </div>
-                <p class="text-slate-300 font-medium text-sm" data-i18n="loadingText">جاري تحليل الملامح ورسم الإطارات الفنية...</p>
-                <p class="text-xs text-slate-500 mt-1" data-i18n="loadingSub">قد يستغرق ذلك بضع ثوانٍ</p>
+                <p class="text-slate-300 font-medium text-sm" data-i18n="loadingText">جاري رسم الملامح بألوان الأنمي الساحرة...</p>
+                <p class="text-xs text-slate-500 mt-1" data-i18n="loadingSub">يرجى الانتظار لحظات قليلة</p>
             </div>
 
             <!-- النتيجة النهائية -->
@@ -102,7 +105,7 @@ HTML_CONTENT = """
                 <div class="flex items-center justify-between mb-3 px-1">
                     <span class="text-xs font-bold text-pink-400 uppercase tracking-wider" data-i18n="resultTitle">النتيجة النهائية (أنمي):</span>
                 </div>
-                <div class="relative rounded-2xl overflow-hidden border border-pink-500/30 bg-slate-950 p-2 max-h-72 flex justify-center mb-6 shadow-2xl">
+                <div class="relative rounded-2xl overflow-hidden border border-pink-500/40 bg-slate-950 p-2 max-h-72 flex justify-center mb-6 shadow-2xl neon-glow">
                     <img id="animeResultImage" class="max-h-64 rounded-xl object-contain">
                 </div>
                 <div class="flex gap-3">
@@ -129,17 +132,17 @@ HTML_CONTENT = """
         let currentImageUrl = '';
         const translations = {
             ar: {
-                badge: "النسخة الاحترافية",
+                badge: "النسخة الفاخرة",
                 titlePre: "حوّلي صورتك إلى",
-                titleHighlight: "أنمي فني",
-                subtitle: "تقنية معالجة متطورة تحافظ على تعابير وجهك وملامحك الحقيقية بدقة عالية",
+                titleHighlight: "أنمي فخم",
+                subtitle: "معالجة فنية متطورة ترسم الملامح بدقة مذهلة وجمالية عالية",
                 uploadText: "اضغطي هنا لاختيار صورتك الشخصية",
                 uploadSub: "تدعم صيغ PNG, JPG بجميع الأحجام",
                 selectedImage: "الصورة المحددة:",
                 changeImg: "تغيير الصورة",
-                convertBtn: "بدء التحويل إلى أنمي الآن",
-                loadingText: "جاري تحليل الملامح ورسم الإطارات الفنية...",
-                loadingSub: "قد يستغرق ذلك بضع ثوانٍ",
+                convertBtn: "ابدئي التحويل الفني الآن",
+                loadingText: "جاري رسم الملامح بألوان الأنمي الساحرة...",
+                loadingSub: "يرجى الانتظار لحظات قليلة",
                 resultTitle: "النتيجة النهائية (أنمي):",
                 downloadBtn: "تحميل الصورة",
                 anotherImg: "صورة أخرى",
@@ -147,17 +150,17 @@ HTML_CONTENT = """
                 langButton: "English 🌐"
             },
             en: {
-                badge: "Pro Version",
+                badge: "Deluxe Edition",
                 titlePre: "Transform your photo into",
-                titleHighlight: "Anime Art",
-                subtitle: "Advanced processing technology preserving your facial expressions and real features accurately",
+                titleHighlight: "Luxury Anime",
+                subtitle: "Advanced art processing rendering features with stunning accuracy and beauty",
                 uploadText: "Click here to choose your personal photo",
                 uploadSub: "Supports PNG, JPG formats in all sizes",
                 selectedImage: "Selected Image:",
                 changeImg: "Change image",
-                convertBtn: "Start Anime Conversion Now",
-                loadingText: "Analyzing facial features and drawing art frames...",
-                loadingSub: "This may take a few seconds",
+                convertBtn: "Start Art Conversion Now",
+                loadingText: "Drawing features with enchanting anime colors...",
+                loadingSub: "Please wait a few moments",
                 resultTitle: "Final Result (Anime):",
                 downloadBtn: "Download Image",
                 anotherImg: "Another Image",
@@ -268,32 +271,39 @@ async def convert_image(file: UploadFile = File(...)):
         if img is None:
             return JSONResponse(content={"status": "error", "detail": "Invalid image file"}, status_code=400)
 
-        # رفع جودة المعالجة وتحجيم مدروس للحفاظ على الملامح بدقة
+        # تحجيم دقيق وعالي الجودة للحفاظ على كامل تفاصيل الملامح والعيون
         height, width = img.shape[:2]
-        max_dim = 900  # زيادة الأبعاد قليلاً للحفاظ على دقة تفاصيل الوجه والعيون
+        max_dim = 1000
         if max(height, width) > max_dim:
             scale = max_dim / max(height, width)
-            img = cv2.resize(img, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_CUBIC)
+            img = cv2.resize(img, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_LANCZOS4)
 
         output_filename = f"anime_{file.filename}"
         output_path = os.path.join("static", output_filename)
 
-        # --- الخوارزمية المطورّة الاحترافية (حافظة للملامح + مظهر أنمي نقي وجذاب) ---
-        # 1. تنعيم مخصص يحافظ على حواف الوجه الأساسية (Bilateral Filtering دقيق)
-        smooth = cv2.bilateralFilter(img, d=11, sigmaColor=55, sigmaSpace=55)
+        # --- خوارزمية الأنمي الفاخرة (تنعيم ذكي + إبراز الملامح + تشبع سينمائي) ---
+        # 1. تنعيم مزدوج للحفاظ على نقاء البشرة كرسومات الأنمي الحديثة
+        smooth1 = cv2.bilateralFilter(img, d=9, sigmaColor=75, sigmaSpace=75)
+        smooth2 = cv2.bilateralFilter(smooth1, d=9, sigmaColor=75, sigmaSpace=75)
 
-        # 2. استخراج خطوط الملامح الفنية الحادة والناعمة في نفس الوقت
+        # 2. استخراج خطوط الملامح الدقيقة جداً (مثل العيون والحواجب) بوضوح عالٍ
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        gray_blur = cv2.GaussianBlur(gray, (3, 3), 0)
-        edges = cv2.Canny(gray_blur, 50, 150)
-        edges = cv2.bitwise_not(edges)
+        gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        edges = cv2.adaptiveThreshold(gray_blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 4)
         edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
 
-        # 3. دمج الرسم الكرتوني مع الخطوط الحقيقية للملامح
-        combined = cv2.bitwise_and(smooth, edges_colored)
+        # 3. دمج الطبقات الفنية للوصول لرسمة أنمي متقنة
+        art_base = cv2.bitwise_and(smooth2, edges_colored)
 
-        # 4. تعزيز ألوان الإضاءة والتشبع لتكون الصورة حيوية، زاهية، وقريبة جداً لرسومات الأنمي الحديثة
-        anime_result = cv2.convertScaleAbs(combined, alpha=1.2, beta=12)
+        # 4. تحسين الألوان، التباين، والتشبع لتكون مفعمة بالحيوية والجاذبية
+        hsv = cv2.cvtColor(art_base, cv2.COLOR_BGR2HSV)
+        h, s, v = cv2.split(hsv)
+        s = cv2.multiply(s, 1.25) # زيادة تشبع ألوان الأنمي
+        s = np.clip(s, 0, 255).astype(np.uint8)
+        final_hsv = cv2.merge((h, s, v))
+        anime_result = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+        
+        anime_result = cv2.convertScaleAbs(anime_result, alpha=1.1, beta=10)
 
         cv2.imwrite(output_path, anime_result)
 
