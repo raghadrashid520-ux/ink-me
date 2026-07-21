@@ -1,16 +1,157 @@
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-import os
 
 app = FastAPI()
 
-# التأكد من وجود مجلد القوالب
-os.makedirs("templates", exist_ok=True)
-templates = Jinja2Templates(directory="templates")
+HTML_CONTENT = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink me - تحويل الصور إلى أنمي بدقة الملامح</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-xl w-full bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-800 text-center">
+        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-pink-500 mb-2">
+            Ink me
+        </h1>
+        <p class="text-slate-400 mb-6">حوّلي صورتك الشخصية إلى أنمي فني مع الحفاظ الدقيق على ملامحك</p>
+
+        <!-- صندوق رفع الصورة -->
+        <div class="mb-6">
+            <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-2xl p-6 cursor-pointer hover:border-pink-500 transition-all bg-slate-900/50">
+                <svg class="w-12 h-12 text-pink-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-sm text-slate-200 font-semibold">اضغطي هنا لاختيار صورتك الشخصية</span>
+                <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="previewImage(event)">
+            </label>
+        </div>
+
+        <!-- معاينة الصورة الأصلية وزر التحويل -->
+        <div id="previewContainer" class="hidden mb-6">
+            <h3 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">الصورة الأصلية:</h3>
+            <img id="sourceImage" class="max-h-56 mx-auto rounded-xl shadow-md mb-4 border border-slate-700 object-contain">
+            <button onclick="convertToAnime()" class="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-pink-500/20">
+                تحويل إلى أنمي دقيق ✨
+            </button>
+        </div>
+
+        <!-- مؤشر التحميل -->
+        <div id="loading" class="hidden my-6">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-pink-500 border-t-transparent"></div>
+            <p class="text-slate-400 mt-2 text-sm">جاري رسم الملامح وتحويلها لأسلوب الأنمي...</p>
+        </div>
+
+        <!-- عرض النتيجة النهائية -->
+        <div id="resultContainer" class="hidden mt-6">
+            <h3 class="text-sm font-bold text-pink-400 mb-2">نتيجة الأنمي الاحترافية:</h3>
+            <canvas id="animeCanvas" class="max-h-72 mx-auto rounded-xl shadow-2xl border border-pink-500/40 mb-4 object-contain"></canvas>
+            <div>
+                <a id="downloadBtn" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all text-sm shadow-lg">
+                    تحميل صورة الأنمي 📥
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImage = new Image();
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage.src = e.target.result;
+                    uploadedImage.onload = function() {
+                        document.getElementById('sourceImage').src = e.target.result;
+                        document.getElementById('previewContainer').classList.remove('hidden');
+                        document.getElementById('resultContainer').classList.add('hidden');
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function convertToAnime() {
+            document.getElementById('loading').classList.remove('hidden');
+            
+            setTimeout(() => {
+                const canvas = document.getElementById('animeCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                let width = uploadedImage.width;
+                let height = uploadedImage.height;
+                const maxDim = 800;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(uploadedImage, 0, 0, width, height);
+                
+                let imgData = ctx.getImageData(0, 0, width, height);
+                let data = imgData.data;
+                let originalData = new Uint8ClampedArray(data);
+                
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        let idx = (y * width + x) * 4;
+                        let r = originalData[idx];
+                        let g = originalData[idx+1];
+                        let b = originalData[idx+2];
+                        
+                        let isEdge = false;
+                        if (x > 0 && y > 0) {
+                            let leftIdx = (y * width + (x - 1)) * 4;
+                            let diff = Math.abs(r - originalData[leftIdx]) + Math.abs(g - originalData[leftIdx+1]) + Math.abs(b - originalData[leftIdx+2]);
+                            if (diff > 35) {
+                                isEdge = true;
+                            }
+                        }
+                        
+                        if (isEdge) {
+                            data[idx] = Math.max(0, r - 70);
+                            data[idx+1] = Math.max(0, g - 70);
+                            data[idx+2] = Math.max(0, b - 70);
+                        } else {
+                            let nr = Math.min(255, r * 1.1 + 15);
+                            let ng = Math.min(255, g * 1.05 + 10);
+                            let nb = Math.max(0, b * 0.9);
+                            
+                            data[idx] = Math.round(nr / 40) * 40;
+                            data[idx+1] = Math.round(ng / 40) * 40;
+                            data[idx+2] = Math.round(nb / 40) * 40;
+                        }
+                    }
+                }
+                
+                ctx.putImageData(imgData, 0, 0);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('resultContainer').classList.remove('hidden');
+                
+                const link = document.getElementById('downloadBtn');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'ink-me-anime-face.png';
+            }, 600);
+        }
+    </script>
+</body>
+</html>
+"""
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """عرض واجهة المنصة الرئيسية للمستخدم"""
-    return templates.TemplateResponse("index.html", {"request": request})
+async def read_root():
+    return HTML_CONTENT
+
