@@ -1,22 +1,21 @@
 import os
 import cv2
 import numpy as np
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
-# إنشاء مجلد للصور المؤقتة
+# إعداد المجلدات والقوالب
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root():
-    if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
-            return f.read()
-    return HTMLResponse(content="<h1>Welcome to Ink me - index.html not found</h1>", status_code=404)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/convert")
 async def convert_image(file: UploadFile = File(...), enhance: str = Form("true")):
