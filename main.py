@@ -12,11 +12,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 HTML_CONTENT = """
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ink me - تحويل الصور إلى أنمي بدقة الملامح</title>
+    <title>Ink me - Anime Face Converter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
@@ -33,12 +33,17 @@ HTML_CONTENT = """
     <!-- خلفية جمالية مضيئة -->
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-tr from-purple-600/20 to-pink-600/25 blur-[120px] pointer-events-none rounded-full"></div>
 
-    <!-- الهيدر -->
+    <!-- الهيدر مع زر تغيير اللغة -->
     <header class="w-full max-w-4xl flex justify-between items-center py-4 z-10">
         <div class="flex items-center space-x-2 space-x-reverse">
             <span class="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Ink me ✨</span>
         </div>
-        <span class="text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400">النسخة الاحترافية</span>
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <button onclick="toggleLanguage()" id="langBtn" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-bold hover:border-pink-500 transition-all">
+                English 🌐
+            </button>
+            <span class="text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hidden md:inline-block" data-i18n="badge">النسخة الاحترافية</span>
+        </div>
     </header>
 
     <!-- المحتوى الرئيسي -->
@@ -47,9 +52,9 @@ HTML_CONTENT = """
             
             <div class="mb-8">
                 <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-3">
-                    حوّلي صورتك إلى <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">أنمي فني</span>
+                    <span data-i18n="titlePre">حوّلي صورتك إلى</span> <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent" data-i18n="titleHighlight">أنمي فني</span>
                 </h1>
-                <p class="text-slate-400 text-sm md:text-base">تقنية معالجة متطورة تحافظ على تعابير وجهك وملامحك الحقيقية بدقة عالية</p>
+                <p class="text-slate-400 text-sm md:text-base" data-i18n="subtitle">تقنية معالجة متطورة تحافظ على تعابير وجهك وملامحك الحقيقية بدقة عالية</p>
             </div>
 
             <!-- منطقة رفع الصورة -->
@@ -61,8 +66,8 @@ HTML_CONTENT = """
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <span class="text-sm font-semibold text-slate-200 mb-1">اضغطي هنا لاختيار صورتك الشخصية</span>
-                    <span class="text-xs text-slate-500">تدعم صيغ PNG, JPG بجميع الأحجام</span>
+                    <span class="text-sm font-semibold text-slate-200 mb-1" data-i18n="uploadText">اضغطي هنا لاختيار صورتك الشخصية</span>
+                    <span class="text-xs text-slate-500" data-i18n="uploadSub">تدعم صيغ PNG, JPG بجميع الأحجام</span>
                     <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="previewImage(event)">
                 </label>
             </div>
@@ -70,14 +75,14 @@ HTML_CONTENT = """
             <!-- معاينة الصورة الأصلية -->
             <div id="previewContainer" class="hidden mb-6 animate-fadeIn">
                 <div class="flex justify-between items-center mb-2 px-1">
-                    <span class="text-xs font-bold text-slate-400">الصورة المحددة:</span>
-                    <button onclick="resetUpload()" class="text-xs text-rose-400 hover:underline">تغيير الصورة</button>
+                    <span class="text-xs font-bold text-slate-400" data-i18n="selectedImage">الصورة المحددة:</span>
+                    <button onclick="resetUpload()" class="text-xs text-rose-400 hover:underline" data-i18n="changeImg">تغيير الصورة</button>
                 </div>
                 <div class="relative rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-950 p-2 max-h-60 flex justify-center">
                     <img id="sourceImage" class="max-h-52 rounded-xl object-contain">
                 </div>
                 <button onclick="uploadAndConvert()" class="mt-5 w-full bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:opacity-95 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center space-x-2 space-x-reverse text-base">
-                    <span>بدء التحويل إلى أنمي الآن</span>
+                    <span data-i18n="convertBtn">بدء التحويل إلى أنمي الآن</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </button>
             </div>
@@ -88,14 +93,14 @@ HTML_CONTENT = """
                     <div class="absolute inset-0 rounded-full border-4 border-pink-500/20"></div>
                     <div class="absolute inset-0 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"></div>
                 </div>
-                <p class="text-slate-300 font-medium text-sm">جاري تحليل الملامح ورسم الإطارات الفنية...</p>
-                <p class="text-xs text-slate-500 mt-1">قد يستغرق ذلك بضع ثوانٍ</p>
+                <p class="text-slate-300 font-medium text-sm" data-i18n="loadingText">جاري تحليل الملامح ورسم الإطارات الفنية...</p>
+                <p class="text-xs text-slate-500 mt-1" data-i18n="loadingSub">قد يستغرق ذلك بضع ثوانٍ</p>
             </div>
 
             <!-- النتيجة النهائية -->
             <div id="resultContainer" class="hidden mt-6 animate-fadeIn">
                 <div class="flex items-center justify-between mb-3 px-1">
-                    <span class="text-xs font-bold text-pink-400 uppercase tracking-wider">النتيجة النهائية (أنمي):</span>
+                    <span class="text-xs font-bold text-pink-400 uppercase tracking-wider" data-i18n="resultTitle">النتيجة النهائية (أنمي):</span>
                 </div>
                 <div class="relative rounded-2xl overflow-hidden border border-pink-500/30 bg-slate-950 p-2 max-h-72 flex justify-center mb-6 shadow-2xl">
                     <img id="animeResultImage" class="max-h-64 rounded-xl object-contain">
@@ -103,9 +108,9 @@ HTML_CONTENT = """
                 <div class="flex gap-3">
                     <a id="downloadBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-2 space-x-reverse">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        <span>تحميل الصورة</span>
+                        <span data-i18n="downloadBtn">تحميل الصورة</span>
                     </a>
-                    <button onclick="resetUpload()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3.5 px-5 rounded-2xl transition-all text-sm">
+                    <button onclick="resetUpload()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3.5 px-5 rounded-2xl transition-all text-sm" data-i18n="anotherImg">
                         صورة أخرى
                     </button>
                 </div>
@@ -115,11 +120,66 @@ HTML_CONTENT = """
     </main>
 
     <!-- الفوتر -->
-    <footer class="w-full max-w-4xl text-center py-4 text-xs text-slate-500 z-10">
+    <footer class="w-full max-w-4xl text-center py-4 text-xs text-slate-500 z-10" data-i18n="footer">
         جميع الحقوق محفوظة © Ink me 2026
     </footer>
 
     <script>
+        let currentLang = 'ar';
+        const translations = {
+            ar: {
+                badge: "النسخة الاحترافية",
+                titlePre: "حوّلي صورتك إلى",
+                titleHighlight: "أنمي فني",
+                subtitle: "تقنية معالجة متطورة تحافظ على تعابير وجهك وملامحك الحقيقية بدقة عالية",
+                uploadText: "اضغطي هنا لاختيار صورتك الشخصية",
+                uploadSub: "تدعم صيغ PNG, JPG بجميع الأحجام",
+                selectedImage: "الصورة المحددة:",
+                changeImg: "تغيير الصورة",
+                convertBtn: "بدء التحويل إلى أنمي الآن",
+                loadingText: "جاري تحليل الملامح ورسم الإطارات الفنية...",
+                loadingSub: "قد يستغرق ذلك بضع ثوانٍ",
+                resultTitle: "النتيجة النهائية (أنمي):",
+                downloadBtn: "تحميل الصورة",
+                anotherImg: "صورة أخرى",
+                footer: "جميع الحقوق محفوظة © Ink me 2026",
+                langButton: "English 🌐"
+            },
+            en: {
+                badge: "Pro Version",
+                titlePre: "Transform your photo into",
+                titleHighlight: "Anime Art",
+                subtitle: "Advanced processing technology preserving your facial expressions and real features accurately",
+                uploadText: "Click here to choose your personal photo",
+                uploadSub: "Supports PNG, JPG formats in all sizes",
+                selectedImage: "Selected Image:",
+                changeImg: "Change image",
+                convertBtn: "Start Anime Conversion Now",
+                loadingText: "Analyzing facial features and drawing art frames...",
+                loadingSub: "This may take a few seconds",
+                resultTitle: "Final Result (Anime):",
+                downloadBtn: "Download Image",
+                anotherImg: "Another Image",
+                footer: "All rights reserved © Ink me 2026",
+                langButton: "العربية 🌐"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            const htmlRoot = document.getElementById('htmlRoot');
+            htmlRoot.setAttribute('lang', currentLang);
+            htmlRoot.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            document.getElementById('langBtn').textContent = translations[currentLang].langButton;
+        }
+
         let selectedFile = null;
 
         function previewImage(event) {
@@ -168,12 +228,12 @@ HTML_CONTENT = """
                     document.getElementById('downloadBtn').href = result.anime_image_url;
                     document.getElementById('resultContainer').classList.remove('hidden');
                 } else {
-                    alert("حدث خطأ: " + result.detail);
+                    alert(currentLang === 'ar' ? "حدث خطأ: " + result.detail : "Error: " + result.detail);
                     document.getElementById('previewContainer').classList.remove('hidden');
                 }
             } catch (error) {
                 document.getElementById('loading').classList.add('hidden');
-                alert("فشل الاتصال بالسيرفر.");
+                alert(currentLang === 'ar' ? "فشل الاتصال بالسيرفر." : "Server connection failed.");
                 document.getElementById('previewContainer').classList.remove('hidden');
             }
         }
@@ -194,8 +254,9 @@ async def convert_image(file: UploadFile = File(...)):
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
         if img is None:
-            return JSONResponse(content={"status": "error", "detail": "الملف ليس صورة صحيحة"}, status_code=400)
+            return JSONResponse(content={"status": "error", "detail": "Invalid image file"}, status_code=400)
 
+        # تحجيم متوازن لحماية الذاكرة وضمان سرعة المعالجة
         height, width = img.shape[:2]
         max_dim = 700
         if max(height, width) > max_dim:
@@ -205,14 +266,22 @@ async def convert_image(file: UploadFile = File(...)):
         output_filename = f"anime_{file.filename}"
         output_path = os.path.join("static", output_filename)
 
-        # خوارزمية OpenCV لمعالجة الملامح والخطوط بدقة
-        smooth = cv2.bilateralFilter(img, d=9, sigmaColor=75, sigmaSpace=75)
+        # --- خوارزمية الأنمي المتقدمة والدقيقة ---
+        # 1. تنعيم البشرة والملامح بطريقة تحاكي رسومات الأنمي (Stylization)
+        cartoon = cv2.stylization(img, sigma_s=60, sigma_r=0.45)
+
+        # 2. استخراج الحواف والخطوط السوداء البارزة للوجه بدقة عالية
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blur = cv2.medianBlur(gray, 7)
-        edges = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 9)
+        blur = cv2.medianBlur(gray, 5)
+        edges = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 7)
         edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+
+        # 3. دمج الخطوط مع الرسم الكرتوني لإنتاج النتيجة النهائية المطابقة للأنمي
+        anime_result = cv2.bitwise_and(cartoon, edges_colored)
         
-        anime_result = cv2.bitwise_and(smooth, edges_colored)
+        # 4. تعزيز إشراق الألوان لتكون مفعمة بالحيوية
+        anime_result = cv2.convertScaleAbs(anime_result, alpha=1.1, beta=10)
+
         cv2.imwrite(output_path, anime_result)
 
         return JSONResponse(content={
@@ -222,4 +291,3 @@ async def convert_image(file: UploadFile = File(...)):
 
     except Exception as e:
         return JSONResponse(content={"status": "error", "detail": str(e)}, status_code=500)
-
