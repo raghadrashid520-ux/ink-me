@@ -106,10 +106,10 @@ HTML_CONTENT = """
                     <img id="animeResultImage" class="max-h-64 rounded-xl object-contain">
                 </div>
                 <div class="flex gap-3">
-                    <a id="downloadBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-2 space-x-reverse">
+                    <button onclick="downloadImage()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-2 space-x-reverse">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         <span data-i18n="downloadBtn">تحميل الصورة</span>
-                    </a>
+                    </button>
                     <button onclick="resetUpload()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3.5 px-5 rounded-2xl transition-all text-sm" data-i18n="anotherImg">
                         صورة أخرى
                     </button>
@@ -126,6 +126,7 @@ HTML_CONTENT = """
 
     <script>
         let currentLang = 'ar';
+        let currentImageUrl = '';
         const translations = {
             ar: {
                 badge: "النسخة الاحترافية",
@@ -199,6 +200,7 @@ HTML_CONTENT = """
 
         function resetUpload() {
             selectedFile = null;
+            currentImageUrl = '';
             document.getElementById('imageInput').value = '';
             document.getElementById('previewContainer').classList.add('hidden');
             document.getElementById('resultContainer').classList.add('hidden');
@@ -224,8 +226,8 @@ HTML_CONTENT = """
                 document.getElementById('loading').classList.add('hidden');
 
                 if (result.status === "success") {
-                    document.getElementById('animeResultImage').src = result.anime_image_url;
-                    document.getElementById('downloadBtn').href = result.anime_image_url;
+                    currentImageUrl = result.anime_image_url;
+                    document.getElementById('animeResultImage').src = currentImageUrl;
                     document.getElementById('resultContainer').classList.remove('hidden');
                 } else {
                     alert(currentLang === 'ar' ? "حدث خطأ: " + result.detail : "Error: " + result.detail);
@@ -236,6 +238,16 @@ HTML_CONTENT = """
                 alert(currentLang === 'ar' ? "فشل الاتصال بالسيرفر." : "Server connection failed.");
                 document.getElementById('previewContainer').classList.remove('hidden');
             }
+        }
+
+        function downloadImage() {
+            if (!currentImageUrl) return;
+            const a = document.createElement('a');
+            a.href = currentImageUrl;
+            a.download = 'ink-me-anime.jpg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>
@@ -256,7 +268,7 @@ async def convert_image(file: UploadFile = File(...)):
         if img is None:
             return JSONResponse(content={"status": "error", "detail": "Invalid image file"}, status_code=400)
 
-        # تحجيم متوازن لحماية الذاكرة وضمان سرعة المعالجة
+        # تحجيم الصورة لتسريع المعالجة وضمان دقة الألوان
         height, width = img.shape[:2]
         max_dim = 700
         if max(height, width) > max_dim:
@@ -266,21 +278,21 @@ async def convert_image(file: UploadFile = File(...)):
         output_filename = f"anime_{file.filename}"
         output_path = os.path.join("static", output_filename)
 
-        # --- خوارزمية الأنمي المتقدمة والدقيقة ---
-        # 1. تنعيم البشرة والملامح بطريقة تحاكي رسومات الأنمي (Stylization)
-        cartoon = cv2.stylization(img, sigma_s=60, sigma_r=0.45)
+        # --- تحسين خوارزمية ملامح الأنمي الدقيقة ---
+        # 1. تطبيق فلتر الأنمي الكرتوني المتقدم لمنح البشرة مظهر الرسم النقي
+        cartoon = cv2.stylization(img, sigma_s=80, sigma_r=0.35)
 
-        # 2. استخراج الحواف والخطوط السوداء البارزة للوجه بدقة عالية
+        # 2. استخراج خطوط وملامح الوجه السوداء الواضحة (مثل العيون والملامح الحادة)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blur = cv2.medianBlur(gray, 5)
-        edges = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 7)
+        blur = cv2.medianBlur(gray, 3)
+        edges = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 7)
         edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
 
-        # 3. دمج الخطوط مع الرسم الكرتوني لإنتاج النتيجة النهائية المطابقة للأنمي
+        # 3. دمج الرسم الكرتوني مع الخطوط السوداء البارزة للوصول لأقرب نتيجة لشكل الأنمي
         anime_result = cv2.bitwise_and(cartoon, edges_colored)
         
-        # 4. تعزيز إشراق الألوان لتكون مفعمة بالحيوية
-        anime_result = cv2.convertScaleAbs(anime_result, alpha=1.1, beta=10)
+        # 4. تباين وتشبع الألوان لتكون مفعمة بالحيوية والوضوح
+        anime_result = cv2.convertScaleAbs(anime_result, alpha=1.15, beta=5)
 
         cv2.imwrite(output_path, anime_result)
 
