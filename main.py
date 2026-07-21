@@ -268,31 +268,32 @@ async def convert_image(file: UploadFile = File(...)):
         if img is None:
             return JSONResponse(content={"status": "error", "detail": "Invalid image file"}, status_code=400)
 
-        # تحجيم الصورة لتسريع المعالجة وضمان دقة الألوان
+        # رفع جودة المعالجة وتحجيم مدروس للحفاظ على الملامح بدقة
         height, width = img.shape[:2]
-        max_dim = 700
+        max_dim = 900  # زيادة الأبعاد قليلاً للحفاظ على دقة تفاصيل الوجه والعيون
         if max(height, width) > max_dim:
             scale = max_dim / max(height, width)
-            img = cv2.resize(img, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_AREA)
+            img = cv2.resize(img, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_CUBIC)
 
         output_filename = f"anime_{file.filename}"
         output_path = os.path.join("static", output_filename)
 
-        # --- تحسين خوارزمية ملامح الأنمي الدقيقة ---
-        # 1. تطبيق فلتر الأنمي الكرتوني المتقدم لمنح البشرة مظهر الرسم النقي
-        cartoon = cv2.stylization(img, sigma_s=80, sigma_r=0.35)
+        # --- الخوارزمية المطورّة الاحترافية (حافظة للملامح + مظهر أنمي نقي وجذاب) ---
+        # 1. تنعيم مخصص يحافظ على حواف الوجه الأساسية (Bilateral Filtering دقيق)
+        smooth = cv2.bilateralFilter(img, d=11, sigmaColor=55, sigmaSpace=55)
 
-        # 2. استخراج خطوط وملامح الوجه السوداء الواضحة (مثل العيون والملامح الحادة)
+        # 2. استخراج خطوط الملامح الفنية الحادة والناعمة في نفس الوقت
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blur = cv2.medianBlur(gray, 3)
-        edges = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 7)
+        gray_blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        edges = cv2.Canny(gray_blur, 50, 150)
+        edges = cv2.bitwise_not(edges)
         edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
 
-        # 3. دمج الرسم الكرتوني مع الخطوط السوداء البارزة للوصول لأقرب نتيجة لشكل الأنمي
-        anime_result = cv2.bitwise_and(cartoon, edges_colored)
-        
-        # 4. تباين وتشبع الألوان لتكون مفعمة بالحيوية والوضوح
-        anime_result = cv2.convertScaleAbs(anime_result, alpha=1.15, beta=5)
+        # 3. دمج الرسم الكرتوني مع الخطوط الحقيقية للملامح
+        combined = cv2.bitwise_and(smooth, edges_colored)
+
+        # 4. تعزيز ألوان الإضاءة والتشبع لتكون الصورة حيوية، زاهية، وقريبة جداً لرسومات الأنمي الحديثة
+        anime_result = cv2.convertScaleAbs(combined, alpha=1.2, beta=12)
 
         cv2.imwrite(output_path, anime_result)
 
