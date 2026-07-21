@@ -12,7 +12,7 @@
         <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-pink-500 mb-2">
             Ink me
         </h1>
-        <p class="text-slate-400 mb-6">حوّلي صورتك الشخصية إلى أنمي مع الحفاظ التام على ملامحك الحقيقية</p>
+        <p class="text-slate-400 mb-6">حوّلي صورتك الشخصية إلى أنمي فني مع الحفاظ الدقيق على ملامحك</p>
 
         <!-- صندوق رفع الصورة -->
         <div class="mb-6">
@@ -30,19 +30,19 @@
             <h3 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">الصورة الأصلية:</h3>
             <img id="sourceImage" class="max-h-56 mx-auto rounded-xl shadow-md mb-4 border border-slate-700 object-contain">
             <button onclick="convertToAnime()" class="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-pink-500/20">
-                تحويل إلى أنمي الآن ✨
+                تحويل إلى أنمي دقيق ✨
             </button>
         </div>
 
         <!-- مؤشر التحميل -->
         <div id="loading" class="hidden my-6">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-pink-500 border-t-transparent"></div>
-            <p class="text-slate-400 mt-2 text-sm">جاري تحليل الملامح ورسم الأنمي بدقة...</p>
+            <p class="text-slate-400 mt-2 text-sm">جاري رسم الملامح وتحويلها لأسلوب الأنمي...</p>
         </div>
 
         <!-- عرض النتيجة النهائية -->
         <div id="resultContainer" class="hidden mt-6">
-            <h3 class="text-sm font-bold text-pink-400 mb-2">نتيجة الأنمي (مع الحفاظ على ملامحك):</h3>
+            <h3 class="text-sm font-bold text-pink-400 mb-2">نتيجة الأنمي الاحترافية:</h3>
             <canvas id="animeCanvas" class="max-h-72 mx-auto rounded-xl shadow-2xl border border-pink-500/40 mb-4 object-contain"></canvas>
             <div>
                 <a id="downloadBtn" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all text-sm shadow-lg">
@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <!-- محرك معالجة الصور والحفاظ على الملامح بالمتصفح -->
+    <!-- محرك معالجة الأنمي المتقدم المماثل لخوارزميات البايثون ولكن بسرعة المتصفح -->
     <script>
         let uploadedImage = new Image();
 
@@ -81,7 +81,7 @@
                 
                 let width = uploadedImage.width;
                 let height = uploadedImage.height;
-                const maxDim = 800; // أبعاد عالية لدقة تفاصيل الوجه والملامح
+                const maxDim = 800; // دقة عالية لحفظ تفاصيل الوجه والملامح
                 if (width > maxDim || height > maxDim) {
                     if (width > height) {
                         height = Math.round((height * maxDim) / width);
@@ -95,35 +95,53 @@
                 canvas.width = width;
                 canvas.height = height;
                 
-                // رسم الصورة الأصلية بدقة
+                // رسم الصورة الأصلية
                 ctx.drawImage(uploadedImage, 0, 0, width, height);
                 
                 let imgData = ctx.getImageData(0, 0, width, height);
                 let data = imgData.data;
+                let originalData = new Uint8ClampedArray(data);
                 
-                // خوارزمية هندسية متطورة لتحويل الألوان وتبرز مقاسات الوجه وملامحه بطابع الأنمي
+                // خوارزمية هندسية دقيقة تحاكي فلتر الأنمي: تلوين مسطح مع الحفاظ على الخطوط والملامح
                 for (let y = 0; y < height; y++) {
                     for (let x = 0; x < width; x++) {
                         let idx = (y * width + x) * 4;
-                        let r = data[idx];
-                        let g = data[idx+1];
-                        let b = data[idx+2];
                         
-                        // تعزيز تباين الملامح والخطوط الكرتونية وإشراق الألوان
-                        let nr = Math.min(255, r * 1.15 + 10);
-                        let ng = Math.min(255, g * 1.10 + 10);
-                        let nb = Math.max(0, b * 0.85 - 5);
+                        let r = originalData[idx];
+                        let g = originalData[idx+1];
+                        let b = originalData[idx+2];
                         
-                        // تطبيق خفيف لتسطيح الألوان (Cell Shading Style)
-                        data[idx] = Math.round(nr / 32) * 32;
-                        data[idx+1] = Math.round(ng / 32) * 32;
-                        data[idx+2] = Math.round(nb / 32) * 32;
+                        // اكتشاف مبسط للحواف البارزة (مثل العيون والشفاه ومحيط الوجه) لتحديد الرسم
+                        let isEdge = false;
+                        if (x > 0 && y > 0) {
+                            let leftIdx = (y * width + (x - 1)) * 4;
+                            let diff = Math.abs(r - originalData[leftIdx]) + Math.abs(g - originalData[leftIdx+1]) + Math.abs(b - originalData[leftIdx+2]);
+                            if (diff > 35) {
+                                isEdge = true;
+                            }
+                        }
+                        
+                        if (isEdge) {
+                            // تغميق الخطوط والحواف البارزة لإعطاء مظهر التخطيط الكرتوني
+                            data[idx] = Math.max(0, r - 70);
+                            data[idx+1] = Math.max(0, g - 70);
+                            data[idx+2] = Math.max(0, b - 70);
+                        } else {
+                            // إعطاء تأثير الألوان الناعمة (Cell Shading) مع إبراز الإشراق للوجه
+                            let nr = Math.min(255, r * 1.1 + 15);
+                            let ng = Math.min(255, g * 1.05 + 10);
+                            let nb = Math.max(0, b * 0.9);
+                            
+                            // تجميع المستويات اللونية لمنح طابع رسمة الأنمي
+                            data[idx] = Math.round(nr / 40) * 40;
+                            data[idx+1] = Math.round(ng / 40) * 40;
+                            data[idx+2] = Math.round(nb / 40) * 40;
+                        }
                     }
                 }
                 
                 ctx.putImageData(imgData, 0, 0);
                 
-                // إنهاء التحميل وإظهار النتيجة الزاهية
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('resultContainer').classList.remove('hidden');
                 
